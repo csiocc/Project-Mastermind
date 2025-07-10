@@ -1,17 +1,24 @@
 require "tty-prompt"
 Debugging = false
 
+
 module MasterMind
+
   
+  
+
+
   class Setter
     attr_reader :code, :hint
-    def initialize(code)
+    attr_accessor :player_role
+    def initialize(code, player_role)
       @code = code
       @hint = []
+      @player_role = player_role
     end
 
     def get_code
-      puts "Insert your Code a Number between 1111 - 6666"
+      puts "Insert your Code a Number between 1111 - 6666 or 'exit' to leave"
       @code = gets.chomp.chars.to_a
     end
     
@@ -63,15 +70,21 @@ module MasterMind
 
   class Guesser 
     attr_reader :guess
-    def initialize(guess)
+    attr_accessor :player_role
+    def initialize(guess, player_role)
       @guess = guess
+      @player_role = false
+    end
+
+    def ki_make_guess
+      @guess = "1111".chars.to_a
     end
 
     def make_guess 
-      
       @guess = gets.chomp.chars.to_a
     end
   end
+  
 
   def self.still_no_win?(setter_one, guess)
     return true if setter_one.display_hint(guess) != "XXXX"
@@ -83,14 +96,34 @@ module MasterMind
     tries_sum.to_f / round_count
   end
 
+
+
   def self.play_game
     total_rounds_played = 0
     total_tries_sum = 0
 
     loop do  #Main Game Loop
-      setter_one = Setter.new([])
-      guesser_one = Guesser.new([])
-      setter_one.ki_get_code
+      prompt = TTY::Prompt.new
+      player_choice_input = prompt.select("Choose your destiny?") do |menu|
+        menu.choice "Set-Code"
+        menu.choice "Guess-Code"
+      end
+
+      case player_choice_input
+        when "Set-Code"
+          setter_one = Setter.new([], true)
+          guesser_one = Guesser.new([], false)
+        when "Guess-Code"
+          setter_one = Setter.new([], false)
+          guesser_one = Guesser.new([], true)
+      end
+
+      if setter_one.player_role 
+        setter_one.get_code
+      else
+        setter_one.ki_get_code
+      end
+     
 
       total_rounds_played += 1
       current_round_tries = 0
@@ -98,16 +131,22 @@ module MasterMind
       puts "Round: #{total_rounds_played} | AVG Tries: #{MasterMind.avg_tries(total_rounds_played - 1, total_tries_sum).round(1)}"
       puts "Insert your Guess a Number between 1111 - 6666 or 'exit' to leave"
 
-      max_tries = 12
+      max_tries = 500
       loop do # Round Game Loop
 
         if current_round_tries >= max_tries # game stops after 12 trys
           puts "Game over! The code was #{setter_one.code.join}"
+          total_tries_sum += (current_round_tries + 1)
           break
         end
 
-        guesser_one.make_guess
-        guess = guesser_one.guess.to_a
+        if guesser_one.player_role
+          guesser_one.make_guess
+          guess = guesser_one.guess.to_a
+        else
+          guesser_one.ki_make_guess
+          guess = guesser_one.ki_make_guess.to_a
+        end
 
         if guess.join.downcase == "exit"
           puts "Exiting, cu!"
