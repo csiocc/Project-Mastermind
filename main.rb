@@ -1,5 +1,5 @@
 require "tty-prompt"
-Debugging = false
+Debugging = true
 
 
 module MasterMind
@@ -73,7 +73,7 @@ module MasterMind
     attr_accessor :player_role
     def initialize(guess, player_role)
       @guess = guess
-      @player_role = false
+      @player_role = player_role
     end
 
     def ki_make_guess
@@ -103,19 +103,23 @@ module MasterMind
     total_tries_sum = 0
 
     loop do  #Main Game Loop
-      prompt = TTY::Prompt.new
+      prompt = TTY::Prompt.new #chose role
       player_choice_input = prompt.select("Choose your destiny?") do |menu|
         menu.choice "Set-Code"
         menu.choice "Guess-Code"
       end
 
-      case player_choice_input
+      puts "DEBUG: player_choice_input ist jetz: #{player_choice_input}" if Debugging
+      puts "DEBUG: Typ von player_choice_input: #{player_choice_input.class}" if Debugging
+      case player_choice_input #set role
         when "Set-Code"
           setter_one = Setter.new([], true)
           guesser_one = Guesser.new([], false)
+          puts "DEBUG: Player is Setter #{setter_one.player_role}" if Debugging
         when "Guess-Code"
           setter_one = Setter.new([], false)
           guesser_one = Guesser.new([], true)
+          puts "DEBUG: Player is Guesser #{guesser_one.player_role}" if Debugging
       end
 
       if setter_one.player_role 
@@ -131,7 +135,7 @@ module MasterMind
       puts "Round: #{total_rounds_played} | AVG Tries: #{MasterMind.avg_tries(total_rounds_played - 1, total_tries_sum).round(1)}"
       puts "Insert your Guess a Number between 1111 - 6666 or 'exit' to leave"
 
-      max_tries = 500
+      max_tries = 5
       loop do # Round Game Loop
 
         if current_round_tries >= max_tries # game stops after 12 trys
