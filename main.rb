@@ -131,15 +131,29 @@ module MasterMind
         end
         @guess = best_guess
       end
-      
       @guess
     end
 
     def make_guess 
-      @guess = gets.chomp.chars.to_a
+      input = gets.chomp
+      if input.downcase == "exit"
+        @guess = ["exit"]
+      else
+        @guess = input.chars.to_a
+        until @guess.length == 4 && @guess.all? {|char| char.between?("1", "6")}
+          puts "Invalid input, enter 4 Digits in a Row between 1-6"
+          input = gets.chomp
+          if input.downcase == "exit"
+            @guess = ["exit"]
+            break
+          else
+            @guess = input.chars.to_a
+          end
+        end
+        @guess
+      end
     end
   end
-  
 
   def self.still_no_win?(setter_one, guess)
     return true if setter_one.display_hint(guess) != "XXXX"
