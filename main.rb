@@ -5,7 +5,7 @@ DebuggingKi = false
 class String
     def bold
         "\e[1m#{self}\e[22m" 
-     end
+    end
 end
 
 module MasterMind
@@ -139,8 +139,8 @@ module MasterMind
 
         candidate_guesses = @possible_codes
 
-        candidate_guesses.each do |candidate_guess|
-          hint_counts = Hash.new(0)
+        candidate_guesses.each do |candidate_guess|                                           # finding Code with the best possible Hint result
+          hint_counts = Hash.new(0)                                                           # from the remaining possible Codes
           puts "DEBUG: hint counts: #{hint_counts}" if DebuggingKi
           @possible_codes.each do |possible_secret|
             hint = calculate_hint(possible_secret, candidate_guess)
