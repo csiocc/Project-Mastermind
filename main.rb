@@ -1,6 +1,6 @@
 require "tty-prompt"
 Debugging = false
-Debuggingki = false
+DebuggingKi = false
 
 module MasterMind 
 
@@ -42,9 +42,24 @@ module MasterMind
       @player_role = player_role
     end
 
-    def get_code
-      puts "Insert your Code a Number between 1111 - 6666"
-      @code = gets.chomp.chars.to_a
+    def get_code 
+      input = gets.chomp
+      if input.downcase == "exit"
+        @code = ["exit"]
+      else
+        @code = input.chars
+        until @code.length == 4 && @code.all? {|char| char.between?("1", "6")}
+          puts "Invalid input, enter 4 Digits in a Row between 1-6"
+          input = gets.chomp
+          if input.downcase == "exit"
+            @code = ["exit"]
+            break
+          else
+            @code = input.chars
+          end
+        end
+        @code
+      end
     end
     
     def ki_get_code
@@ -87,7 +102,7 @@ module MasterMind
       HintCalc.calculate(s_code, guess_arr)
     end
 
-    def ki_make_guess(last_guess = nil, last_hint = nil)  #Function for Ki guesscalc (Inspired by https://rosettacode.org/ Python Mastermind & Gemini )
+    def ki_make_guess(last_guess = nil, last_hint = nil)  #Function for Ki guesscalc (This Function is inspired by https://rosettacode.org/ Python Mastermind & Gemini )
       puts "DEBUG: aktuelle mögliche Codes: #{@possible_codes.length}" if Debugging
 
       unless @first_guess_made
@@ -101,7 +116,7 @@ module MasterMind
           calculated_hint = calculate_hint(code, last_guess)
           calculated_hint == last_hint
         end
-        puts "DEBUG: mögliche codes nach filterung: #{@possible_codes.length}" if Debuggingki
+        puts "DEBUG: mögliche codes nach filterung: #{@possible_codes.length}" if DebuggingKi
       end
 
       if @possible_codes.length == 1
@@ -114,15 +129,15 @@ module MasterMind
 
         candidate_guesses.each do |candidate_guess|
           hint_counts = Hash.new(0)
-          puts "DEBUG: hint counts: #{hint_counts}" if Debuggingki
+          puts "DEBUG: hint counts: #{hint_counts}" if DebuggingKi
           @possible_codes.each do |possible_secret|
             hint = calculate_hint(possible_secret, candidate_guess) 
             hint_counts[hint] += 1
-            puts "DEBUG: hint: #{hint}" if Debuggingki
+            puts "DEBUG: hint: #{hint}" if DebuggingKi
           end
 
           worst_case_size = hint_counts.values.max || 0 
-          puts "DEBUG: worst case size: #{worst_case_size}" if Debuggingki
+          puts "DEBUG: worst case size: #{worst_case_size}" if DebuggingKi
 
           if best_guess.nil? || worst_case_size < max_eliminated_in_worst_case
             max_eliminated_in_worst_case = worst_case_size
@@ -139,7 +154,7 @@ module MasterMind
       if input.downcase == "exit"
         @guess = ["exit"]
       else
-        @guess = input.chars.to_a
+        @guess = input.chars
         until @guess.length == 4 && @guess.all? {|char| char.between?("1", "6")}
           puts "Invalid input, enter 4 Digits in a Row between 1-6"
           input = gets.chomp
@@ -147,7 +162,7 @@ module MasterMind
             @guess = ["exit"]
             break
           else
-            @guess = input.chars.to_a
+            @guess = input.chars
           end
         end
         @guess
@@ -192,7 +207,11 @@ module MasterMind
       end
 
       if setter_one.player_role 
-        setter_one.get_code
+        exit_code = setter_one.get_code
+        if exit_code.join.downcase == "exit"
+          puts "Exiting, cu!"
+          return
+        end
       else #Ki is setter
         setter_one.ki_get_code
       end
@@ -221,8 +240,7 @@ module MasterMind
           guesser_one.make_guess
           guess = guesser_one.guess.to_a
         else #Ki is guesser
-          guesser_one.ki_make_guess(last_ki_guess, last_ki_hint)
-          guess = guesser_one.ki_make_guess
+          guess = guesser_one.ki_make_guess(last_ki_guess, last_ki_hint)
           last_ki_guess = guess #stores ki guess
           puts "KI-Guess: #{guess.join}"
         end
@@ -242,7 +260,7 @@ module MasterMind
         unless still_no_win?(setter_one, guess)
           puts "Ki - got it in #{current_round_tries+1} Trys! This Ki is so bad, or your Code is insane." if setter_one.player_role && current_round_tries+1 > 4 && current_round_tries+1 > 8
           puts "Ki - got it in #{current_round_tries+1} Trys! Still good." if setter_one.player_role && current_round_tries+1 > 4 && current_round_tries+1 < 8
-          puts "Ki - got it in #{current_round_tries+1} Trys Awesome not? Your Code is a bit too easy." if setter_one.player_role && current_round_tries+1 <= 4
+          puts "Ki - got it in #{current_round_tries+1} Trys Awesome not? Your Code is probably a bit too easy." if setter_one.player_role && current_round_tries+1 <= 4
           puts "Ki - got it in #{current_round_tries+1} Trys! This was bad." if guesser_one.player_role && current_round_tries+1 > 4 && current_round_tries+1 > 8
           puts "Ki - got it in #{current_round_tries+1} Trys! Still good." if guesser_one.player_role && current_round_tries+1 > 4 && current_round_tries+1 < 8
           puts "GZ! u got it in #{current_round_tries+1} Trys Awesome! Your're a crack.'" if guesser_one.player_role && current_round_tries+1 <= 4
