@@ -1,8 +1,8 @@
 require "tty-prompt"
 Debugging = false
+Debuggingki = false
 
-
-module MasterMind #Module für Ki Hinweisberechnung (Inspired by  https://rosettacode.org/ Python Mastermind & Gemini )
+module MasterMind 
 
   module HintCalc #Module for Hintcalculation
     def self.calculate(s_code, guess_arr)
@@ -87,7 +87,7 @@ module MasterMind #Module für Ki Hinweisberechnung (Inspired by  https://rosett
       HintCalc.calculate(s_code, guess_arr)
     end
 
-    def ki_make_guess(last_guess = nil, last_hint = nil)
+    def ki_make_guess(last_guess = nil, last_hint = nil)  #Function for Ki guesscalc (Inspired by https://rosettacode.org/ Python Mastermind & Gemini )
       puts "DEBUG: aktuelle mögliche Codes: #{@possible_codes.length}" if Debugging
 
       unless @first_guess_made
@@ -101,7 +101,7 @@ module MasterMind #Module für Ki Hinweisberechnung (Inspired by  https://rosett
           calculated_hint = calculate_hint(code, last_guess)
           calculated_hint == last_hint
         end
-        puts "DEBUG: mögliche codes nach filterung: #{@possible_codes.length}" if Debugging
+        puts "DEBUG: mögliche codes nach filterung: #{@possible_codes.length}" if Debuggingki
       end
 
       if @possible_codes.length == 1
@@ -114,13 +114,15 @@ module MasterMind #Module für Ki Hinweisberechnung (Inspired by  https://rosett
 
         candidate_guesses.each do |candidate_guess|
           hint_counts = Hash.new(0)
-
+          puts "DEBUG: hint counts: #{hint_counts}" if Debuggingki
           @possible_codes.each do |possible_secret|
             hint = calculate_hint(possible_secret, candidate_guess) 
             hint_counts[hint] += 1
+            puts "DEBUG: hint: #{hint}" if Debuggingki
           end
 
           worst_case_size = hint_counts.values.max || 0 
+          puts "DEBUG: worst case size: #{worst_case_size}" if Debuggingki
 
           if best_guess.nil? || worst_case_size < max_eliminated_in_worst_case
             max_eliminated_in_worst_case = worst_case_size
