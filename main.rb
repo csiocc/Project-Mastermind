@@ -2,34 +2,40 @@ require 'tty-prompt'
 Debugging = false
 DebuggingKi = false
 
+class String
+    def bold
+        "\e[1m#{self}\e[22m" 
+     end
+end
+
 module MasterMind
   module HintCalc # Module for Hintcalculation
     def self.calculate(s_code, guess_arr)
       temp_secret = s_code.dup
       temp_guess = guess_arr.dup
 
-      provisional_hints = []
+      actual_hint = []
 
       s_code.length.times do |i| # mark right pos/num
         next unless temp_guess[i] == temp_secret[i]
 
-        provisional_hints << 'X'
+        actual_hint << 'X'
         temp_secret[i] = nil # delete used nums
         temp_guess[i] = nil  # delete used nums
       end
 
-      temp_guess.each_with_index do |char, _i|
+      temp_guess.each_with_index do |char, _i| # mark right num
         next unless char # skip nil/X
 
         secret_idx = temp_secret.index(char)
         if secret_idx
-          provisional_hints << 'O'
+          actual_hint << 'O'
           temp_secret[secret_idx] = nil # delete used nums
         end
       end
-      remaining_slots = s_code.length - provisional_hints.length
-      remaining_slots.times { provisional_hints << '-' }
-      provisional_hints.sort_by do |h|
+      remaining_slots = s_code.length - actual_hint.length
+      remaining_slots.times { actual_hint << '-' }
+      actual_hint.sort_by do |h|
         if h == 'X'
           0
         else
@@ -159,6 +165,8 @@ module MasterMind
       input = gets.chomp
       if input.downcase == 'exit'
         @guess = ['exit']
+      elsif input.downcase == 'help'
+        @guess = ['help']
       else
         @guess = input.chars
         until @guess.length == 4 && @guess.all? { |char| char.between?('1', '6') }
@@ -166,6 +174,9 @@ module MasterMind
           input = gets.chomp
           if input.downcase == 'exit'
             @guess = ['exit']
+            break
+          elsif input.downcase == 'help'
+            @guess = ['help']
             break
           else
             @guess = input.chars
@@ -212,6 +223,7 @@ module MasterMind
         puts "DEBUG: Player is Guesser #{guesser_one.player_role}" if Debugging
       end
 
+
       if setter_one.player_role
         exit_code = setter_one.get_code
         if exit_code.join.downcase == 'exit'
@@ -220,6 +232,7 @@ module MasterMind
         end
       else # Ki is setter
         setter_one.ki_get_code
+        puts "Ki generated a Code, try to crack it!".bold
       end
 
       total_rounds_played += 1
@@ -227,7 +240,7 @@ module MasterMind
 
       puts "Round: #{total_rounds_played} | AVG Tries: #{MasterMind.avg_tries(total_rounds_played - 1,
                                                                               total_tries_sum).round(1)}"
-      puts "Insert your Guess a Number between 1111 - 6666 or 'exit' to leave" if guesser_one.player_role
+      puts "Insert your Guess a Number between 1111 - 6666 |" + " help ".bold + "for Hint help or" + " exit ".bold + "to leave" if guesser_one.player_role
       puts 'Calculating......' if setter_one.player_role
 
       max_tries = 12
@@ -252,7 +265,10 @@ module MasterMind
 
         hint = setter_one.display_hint(guess)
         last_ki_hint = hint
-
+        if guess.join.downcase == 'help'
+          puts "Hint Help: 'X' = right Num/Pos | 'O' = right num"
+          guesser_one.make_guess
+        end
         if guess.join.downcase == 'exit'
           puts 'Exiting, cu!'
           return # stop game exit
